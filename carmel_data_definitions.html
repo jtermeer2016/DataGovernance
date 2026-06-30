@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carmel Data Definitions</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
+body{background:#f0f2f5;min-height:100vh}
+.topnav{background:#1a3a5c;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.topnav-logo{display:flex;align-items:center;gap:10px}
+.logo-text{display:flex;flex-direction:column;line-height:1}
+.logo-text span:first-child{color:#fff;font-size:15px;font-weight:800;letter-spacing:2px}
+.logo-text span:last-child{color:#7eb8e8;font-size:9px;letter-spacing:3px;font-weight:600}
+.topnav-user{color:#cce3f7;font-size:13px;display:flex;align-items:center;gap:8px}
+.avatar{background:#2d6da8;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+
+/* LANDING */
+.landing{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 58px);padding:40px 24px;background:linear-gradient(160deg,#0d2440 0%,#1a3a5c 60%,#1a4d35 100%)}
+.landing-logo{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.landing h1{color:#fff;font-size:28px;font-weight:800;letter-spacing:1px;text-align:center;margin-bottom:8px}
+.landing>p{color:#7eb8e8;font-size:14px;text-align:center;max-width:500px;margin-bottom:48px;line-height:1.6}
+.landing-cards{display:flex;gap:24px;flex-wrap:wrap;justify-content:center}
+.landing-card{background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.12);border-radius:16px;padding:32px 36px;width:260px;cursor:pointer;transition:all .25s;text-align:center}
+.landing-card:hover{transform:translateY(-6px);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.landing-card.gov:hover{border-color:#4da6e8;background:rgba(77,166,232,.12)}
+.landing-card.dept:hover{border-color:#6ecfa0;background:rgba(110,207,160,.12)}
+.landing-card.search-card:hover{border-color:#c4b5fd;background:rgba(196,181,253,.1)}
+.landing-card .card-icon{font-size:40px;margin-bottom:14px}
+.landing-card h2{font-size:16px;font-weight:800;color:#fff;margin-bottom:8px}
+.landing-card p{font-size:12px;color:#9db8cc;line-height:1.6}
+.card-pill{display:inline-block;margin-top:14px;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.gov .card-pill{background:#1e4976;color:#7eb8e8}
+.dept .card-pill{background:#1a4d35;color:#6ecfa0}
+.search-card .card-pill{background:#2d1f5e;color:#c4b5fd}
+
+/* APP SHELL */
+.app-shell{display:none}
+.app-shell.visible{display:flex;flex-direction:column}
+.type-stripe{height:4px;width:100%}
+.stripe-gov{background:linear-gradient(90deg,#1a3a5c,#4da6e8)}
+.stripe-dept{background:linear-gradient(90deg,#1a4d35,#6ecfa0)}
+.stripe-search{background:linear-gradient(90deg,#2d1f5e,#7c3aed)}
+.tab-bar{background:#13304f;display:flex;padding:0 0 0 16px;border-bottom:2px solid #0d2440;align-items:stretch}
+.tab{padding:12px 20px;color:#7eb8e8;font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;transition:all .2s;margin-bottom:-2px;white-space:nowrap;display:none}
+.tab.visible{display:flex;align-items:center}
+.tab:hover{color:#fff;background:rgba(255,255,255,.05)}
+.tab.active{color:#fff;border-bottom-color:#4da6e8}
+.tab-bar-right{margin-left:auto;display:flex;align-items:center;padding:0 16px;gap:10px}
+.ctx-badge{font-size:12px;font-weight:700;padding:3px 14px;border-radius:12px;letter-spacing:.5px}
+.ctx-gov{background:#1e4976;color:#7eb8e8}
+.ctx-dept{background:#1a4d35;color:#6ecfa0}
+.ctx-search{background:#2d1f5e;color:#c4b5fd}
+.change-btn{font-size:11px;color:#7eb8e8;background:none;border:1px solid #2d5a82;border-radius:6px;padding:4px 12px;cursor:pointer}
+.change-btn:hover{background:#1e4976}
+.layout{display:flex;min-height:calc(100vh - 116px)}
+.sidebar{width:56px;background:#1a3a5c;display:flex;flex-direction:column;align-items:center;padding:16px 0;gap:20px}
+.sicon{width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.sicon.active,.sicon:hover{background:#2d6da8}
+.sicon svg{width:18px;height:18px;fill:#cce3f7}
+.main{flex:1;padding:24px;overflow-x:hidden}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* CARDS */
+.card{background:#fff;border-radius:10px;padding:18px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.card h3{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:12px}
+.cfg-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.cf{flex:1;min-width:175px}
+.cf label{font-size:12px;color:#666;display:block;margin-bottom:4px;font-weight:600}
+.cf input,.cf select{width:100%;border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-size:13px;outline:none;transition:border .2s}
+.cf input:focus,.cf select:focus{border-color:#2d6da8}
+.upload-bar{background:#fff;border-radius:10px;padding:13px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.upload-bar .lbl{font-size:13px;font-weight:600;color:#1a3a5c}
+.drop-mini{border:2px dashed #2d6da8;border-radius:7px;padding:7px 16px;cursor:pointer;font-size:13px;color:#2d6da8;font-weight:600;background:#f5f9ff}
+.drop-mini:hover{background:#e3f0ff}
+.file-chip{font-size:12px;color:#2d6da8;background:#e3f0ff;padding:3px 10px;border-radius:12px}
+.divider{width:1px;background:#e0e0e0;align-self:stretch;margin:0 4px}
+.action-bar{background:#fff;border-radius:10px;padding:14px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;gap:12px;flex-wrap:wrap;border-left:4px solid #1a3a5c}
+.action-bar-label{font-size:13px;font-weight:700;color:#1a3a5c}
+.action-bar-desc{font-size:12px;color:#888}
+
+/* TABLE */
+.tcard-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tcard-hdr h3{font-size:14px;font-weight:700;color:#1a3a5c}
+.tmeta{display:flex;align-items:center;gap:8px}
+.row-count{font-size:12px;color:#888;background:#f0f2f5;padding:3px 10px;border-radius:12px}
+.dirty-badge{font-size:12px;color:#856404;background:#fff3cd;padding:3px 10px;border-radius:12px;display:none}
+.search-box{border:1px solid #ccc;border-radius:6px;padding:7px 14px 7px 32px;font-size:13px;width:210px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z' stroke='%23999' stroke-width='2' fill='none'/%3E%3C/svg%3E") no-repeat 10px center;outline:none}
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px;min-width:1000px}
+thead tr{background:#1a3a5c;color:#fff}
+thead th{padding:9px 10px;text-align:left;font-weight:600;white-space:nowrap;font-size:11px}
+tbody tr{border-bottom:1px solid #f0f2f5;transition:background .15s}
+tbody tr:hover{background:#f5f9ff}
+tbody tr.dirty{background:#fffbeb}
+tbody tr.new-row{background:#f0fff4}
+tbody tr.dup-row{background:#fff0f0}
+tbody td{padding:5px 7px;color:#333;vertical-align:middle}
+.ci{width:100%;border:1px solid transparent;border-radius:4px;padding:3px 5px;font-size:12px;background:transparent;outline:none;font-family:inherit;color:#333;resize:none;transition:border .15s,background .15s}
+.ci:focus{border-color:#2d6da8;background:#fff;box-shadow:0 0 0 2px rgba(45,109,168,.15)}
+.dup-icon{color:#dc3545;font-size:13px;cursor:help}
+.cb-cell{text-align:center}
+.cb-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+.cb-wrap input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#1a3a5c}
+.cb-label{font-size:9px;color:#888;text-align:center}
+.dup-alert{background:#fff5f5;border:1px solid #fecaca;border-radius:8px;padding:10px 16px;margin-bottom:14px;display:none;align-items:flex-start;gap:10px}
+.dup-alert.show{display:flex}
+.dup-alert-icon{font-size:18px}
+.dup-alert-body strong{font-size:13px;color:#991b1b;display:block;margin-bottom:4px}
+.dup-alert-body ul{font-size:12px;color:#7f1d1d;padding-left:16px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-header{padding:20px 24px 16px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:1;border-radius:14px 14px 0 0}
+.modal-header h2{font-size:17px;font-weight:700;color:#1a3a5c}
+.modal-close{width:30px;height:30px;border-radius:50%;border:none;background:#f0f2f5;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center}
+.modal-close:hover{background:#e0e3e8}
+.modal-body{padding:20px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid #f0f2f5;display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;border-radius:0 0 14px 14px}
+.modal-section{margin-bottom:20px}
+.modal-section h4{font-size:12px;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #f0f2f5}
+.form-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.form-field{flex:1;min-width:180px}
+.form-field label{font-size:12px;color:#555;font-weight:600;display:block;margin-bottom:4px}
+.form-field input,.form-field textarea,.form-field select{width:100%;border:1px solid #ddd;border-radius:6px;padding:8px 10px;font-size:13px;outline:none;transition:border .2s;font-family:inherit}
+.form-field input:focus,.form-field textarea:focus{border-color:#2d6da8;box-shadow:0 0 0 2px rgba(45,109,168,.12)}
+.form-field textarea{resize:vertical;min-height:72px}
+.form-field.full{min-width:100%;flex-basis:100%}
+.checkbox-field{display:flex;align-items:center;gap:8px;padding:8px 0}
+.checkbox-field input{width:16px;height:16px;accent-color:#1a3a5c;cursor:pointer}
+.checkbox-field label{font-size:13px;color:#333;cursor:pointer}
+.mode-toggle{display:flex;background:#f0f2f5;border-radius:8px;padding:3px;gap:3px;margin-bottom:16px}
+.mode-btn{flex:1;padding:8px 16px;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#666;transition:all .2s}
+.mode-btn.active{background:#fff;color:#1a3a5c;box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.email-preview{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-top:12px}
+.email-preview-hdr{font-size:11px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.email-meta{font-size:12px;color:#555;margin-bottom:3px}
+.email-meta strong{color:#1a3a5c}
+.email-body-preview{font-size:12px;color:#333;line-height:1.6;margin-top:10px;white-space:pre-wrap;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:12px;max-height:200px;overflow-y:auto}
+.email-recipients{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.recipient-tag{background:#e3f0ff;color:#1a3a5c;font-size:11px;padding:3px 10px;border-radius:12px;display:flex;align-items:center;gap:4px}
+.recipient-tag button{background:none;border:none;cursor:pointer;color:#888;font-size:12px;padding:0}
+.add-recipient{display:flex;gap:8px;margin-top:8px}
+.add-recipient input{flex:1;border:1px solid #ddd;border-radius:6px;padding:6px 10px;font-size:12px;outline:none}
+.add-recipient input:focus{border-color:#2d6da8}
+.generating-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#2d6da8;background:#e3f0ff;padding:4px 12px;border-radius:12px}
+.mini-spinner{width:12px;height:12px;border:2px solid #bcd8f5;border-top-color:#2d6da8;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+
+/* BUTTONS */
+.btn{padding:8px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:background .2s,transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:#1a3a5c;color:#fff}.btn-primary:hover{background:#2d6da8}
+.btn-secondary{background:#e9ecef;color:#333}.btn-secondary:hover{background:#dee2e6}
+.btn-success{background:#198754;color:#fff}.btn-success:hover{background:#157347}
+.btn-warning{background:#e67e22;color:#fff}.btn-warning:hover{background:#d35400}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.ibt{width:26px;height:26px;border-radius:5px;border:none;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+.ibt-del{background:#fee2e2;color:#dc3545}.ibt-del:hover{background:#fca5a5}
+.ibt-undo{background:#e0e7ff;color:#4338ca}.ibt-undo:hover{background:#c7d2fe}
+.ibt-edit{background:#e3f0ff;color:#1a3a5c}.ibt-edit:hover{background:#bcd8f5}
+.footer-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.prog-wrap{margin-top:10px;display:none}
+.prog-bg{background:#e9ecef;border-radius:6px;height:7px;overflow:hidden}
+.prog-fill{height:7px;background:#2d6da8;border-radius:6px;transition:width .3s;width:0%}
+.prog-lbl{font-size:11px;color:#555;margin-top:3px;text-align:right}
+.sbadge{display:inline-block;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:600;white-space:nowrap}
+.s-live{background:#d1e7dd;color:#0a5c36}.s-new{background:#cff4fc;color:#0a6c8a}
+.s-dirty{background:#fff3cd;color:#856404}.s-saving{background:#e0e7ff;color:#3730a3}
+.s-error{background:#f8d7da;color:#842029}.s-dup{background:#fee2e2;color:#991b1b}
+
+/* REPORT */
+.rep-hdr{background:#fff;border-radius:10px 10px 0 0;padding:16px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;border-bottom:3px solid #1a3a5c}
+.rep-title{font-size:20px;font-weight:700;color:#1a3a5c}
+.rep-sub{font-size:12px;color:#888;margin-top:2px}
+.filter-bar{background:#f8fafc;border:1px solid #e2e8f0;border-top:none;padding:12px 24px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:3px;min-width:140px}
+.fg label{font-size:11px;font-weight:700;color:#1a3a5c;text-transform:uppercase;letter-spacing:.5px}
+.fsel{border:1px solid #cbd5e1;border-radius:6px;padding:6px 26px 6px 10px;font-size:12px;outline:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;appearance:none;cursor:pointer}
+.rep-welcome{background:#fff;border:1px solid #e2e8f0;border-top:none;padding:12px 24px;text-align:center}
+.rep-welcome h2{font-size:15px;font-weight:700;color:#1a3a5c}
+.rep-welcome p{font-size:12px;color:#888;margin-top:2px}
+.rep-twrap{background:#fff;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 10px 10px;overflow-x:auto;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.rtable{width:100%;border-collapse:collapse;font-size:12px;min-width:800px}
+.rtable thead tr{background:#1a3a5c;color:#fff}
+.rtable thead th{padding:9px 14px;text-align:left;font-weight:600;white-space:nowrap;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.rtable tbody tr{border-bottom:1px solid #e8edf2}
+.rtable tbody tr:hover{background:#f0f7ff}
+.rtable tbody td{padding:9px 14px;color:#1a2a3a;vertical-align:top;line-height:1.5;font-size:12px}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.tag-blue{background:#e3f0ff;color:#1a3a5c}.tag-green{background:#d1fae5;color:#065f46}
+.tag-purple{background:#ede9fe;color:#4c1d95}.tag-gov{background:#dbeafe;color:#1e40af}
+.tag-dept{background:#d1fae5;color:#065f46}.tag-same{background:#d1fae5;color:#065f46}
+.tag-diff{background:#fef3c7;color:#92400e}
+.rep-footer{background:#1a3a5c;color:#cce3f7;font-size:11px;padding:10px 24px;text-align:center;border-radius:0 0 10px 10px}
+
+/* END USER SEARCH */
+.eu-search-bar{background:#fff;border-radius:12px;padding:20px 24px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.eu-input-wrap{position:relative}
+.eu-input-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;pointer-events:none}
+.eu-input{width:100%;border:2px solid #e9d5ff;border-radius:10px;padding:12px 14px 12px 44px;font-size:15px;outline:none;transition:border .2s;font-family:inherit}
+.eu-input:focus{border-color:#7c3aed}
+.eu-filter-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px;align-items:flex-end}
+.eu-filter{display:flex;flex-direction:column;gap:4px;min-width:150px}
+.eu-filter label{font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px}
+.eu-fsel{border:2px solid #e9d5ff;border-radius:8px;padding:8px 28px 8px 12px;font-size:13px;outline:none;appearance:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24'%3E%3Cpath fill='%23666' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 8px center;cursor:pointer;transition:border .2s}
+.eu-fsel:focus{border-color:#7c3aed}
+.eu-result-card{background:#fff;border-radius:12px;padding:20px 24px;box-shadow:0 1px 4px rgba(0,0,0,.08);border-left:4px solid #1a3a5c;transition:box-shadow .2s,transform .15s;cursor:default}
+.eu-result-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.12);transform:translateY(-1px)}
+.eu-result-card.same-ind{border-left-color:#7c3aed}
+.eu-measure{font-size:16px;font-weight:800;color:#1a3a5c}
+.eu-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.eu-section-label{font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px}
+.eu-def-text{font-size:13px;color:#333;line-height:1.65;white-space:pre-line}
+.eu-calc-box{font-size:12px;color:#555;font-family:monospace;background:#f8fafc;padding:7px 12px;border-radius:6px;margin-top:4px}
+mark{background:#ede9fe;color:#5b21b6;border-radius:2px;padding:0 1px}
+
+/* UTILS */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:900;align-items:center;justify-content:center}
+.loading-overlay.show{display:flex}
+.loading-box{background:#fff;border-radius:12px;padding:28px 40px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.spinner{width:38px;height:38px;border:4px solid #e9ecef;border-top-color:#2d6da8;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-box p{font-size:14px;color:#555;font-weight:600}
+.toast{position:fixed;bottom:24px;right:24px;padding:13px 18px;border-radius:8px;font-size:13px;font-weight:600;color:#fff;display:none;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.15);max-width:360px}
+.toast-success{background:#198754}.toast-error{background:#dc3545}.toast-info{background:#0d6efd}
+</style>
+</head>
+<body>
+
+<div class="topnav">
+  <div class="topnav-logo">
+    <svg width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="cg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a3a5c"/><stop offset="50%" style="stop-color:#2d6da8"/><stop offset="100%" style="stop-color:#b0bec5"/></linearGradient>
+        <linearGradient id="cg2" x1="100%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#e0e0e0"/><stop offset="100%" style="stop-color:#90a4ae"/></linearGradient>
+      </defs>
+      <path d="M85,20 A45,45 0 1,0 85,80 L72,80 A32,32 0 1,1 72,20 Z" fill="url(#cg1)"/>
+      <path d="M80,28 A36,36 0 1,0 80,72 L70,72 A26,26 0 1,1 70,28 Z" fill="url(#cg2)" opacity="0.5"/>
+    </svg>
+    <div class="logo-text"><span>CARMEL</span><span>PARTNERS</span></div>
+  </div>
+  <div class="topnav-user"><div class="avatar">CP</div>Data Governance</div>
+</div>
+
+<!-- LANDING -->
+<div class="landing" id="landing">
+  <div class="landing-logo">
+    <svg width="52" height="52" viewBox="0 0 100 100"><defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#1a3a5c"/><stop offset="50%" style="stop-color:#2d6da8"/><stop offset="100%" style="stop-color:#b0bec5"/></linearGradient></defs><path d="M85,20 A45,45 0 1,0 85,80 L72,80 A32,32 0 1,1 72,20 Z" fill="url(#lg1)"/></svg>
+    <div class="logo-text"><span style="font-size:20px">CARMEL</span><span style="font-size:11px">PARTNERS</span></div>
+  </div>
+  <h1>Data Definitions Manager</h1>
+  <p>Select the type of data definitions you'd like to manage. Both types share a unified database with a single source of truth.</p>
+  <div class="landing-cards">
+    <div class="landing-card gov" onclick="selectType('gov')">
+      <div class="card-icon">🏛️</div>
+      <h2>Data Governance</h2>
+      <p>Manage enterprise-wide data definitions, canonical measures, and governance standards.</p>
+      <div class="card-pill">Data Governance Team Only</div>
+    </div>
+    <div class="landing-card dept" onclick="selectType('dept')">
+      <div class="card-icon">📊</div>
+      <h2>Department Report Definitions</h2>
+      <p>Manage data elements and definitions tied to departmental reports and dashboards.</p>
+      <div class="card-pill">Department Reports</div>
+    </div>
+    <div class="landing-card search-card" onclick="selectType('search')">
+      <div class="card-icon">🔍</div>
+      <h2>Search Data Elements</h2>
+      <p>Look up definitions, calculations, and sources for any data element across the organization.</p>
+      <div class="card-pill">Read-Only · All Users</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div class="app-shell" id="appShell">
+  <div class="type-stripe" id="typeStripe"></div>
+  <div class="tab-bar">
+    <div class="tab visible" id="tabEditor" onclick="switchTab('editor')">✏️ Data Editor</div>
+    <div class="tab visible" id="tabReport" onclick="switchTab('report')">📋 Data Dictionary Report</div>
+    <div class="tab" id="tabSearch" onclick="switchTab('search')">🔍 Search Data Elements</div>
+    <div class="tab-bar-right">
+      <span class="ctx-badge" id="ctxBadge"></span>
+      <button class="change-btn" onclick="goHome()">⟵ Change Type</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sicon active"><svg viewBox="0 0 24 24"><path d="M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z"/></svg></div>
+      <div class="sicon"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm-1 15h2v2h-2zm0-8h2v6h-2z"/></svg></div>
+      <div class="sicon"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg></div>
+    </div>
+    <div class="main">
+
+      <!-- EDITOR TAB -->
+      <div class="tab-content active" id="tab-editor">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;color:#1a3a5c">
+            <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#2d6da8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+            <span id="editorTitle"></span>
+          </div>
+          <input class="search-box" type="text" id="searchInput" placeholder="Search…" oninput="renderTable()">
+        </div>
+        <div class="card">
+          <h3>📌 SharePoint Configuration</h3>
+          <div class="cfg-row">
+            <div class="cf"><label>SharePoint Site URL</label><input type="text" id="spSiteUrl" value="https://carmelpartners.sharepoint.com/sites/ORG-DataGovernance"></div>
+            <div class="cf"><label>List Name</label><input type="text" id="spListName" placeholder="e.g. DataDefinitions"></div>
+            <div class="cf"><label>Access Token (Bearer)</label><input type="password" id="spToken" placeholder="Paste access token"></div>
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <button class="btn btn-primary" onclick="fetchFromSharePoint()">Load from SP</button>
+              <button class="btn btn-secondary" onclick="fetchDigest()">Get Digest</button>
+            </div>
+          </div>
+          <div style="margin-top:7px;font-size:11px;color:#888">Click <strong>Get Digest</strong> first to authorize writes. Data filtered to selected type.</div>
+        </div>
+        <div class="action-bar" id="govActionBar" style="display:none">
+          <span class="action-bar-label">🏛️ Data Governance Actions:</span>
+          <button class="btn btn-primary btn-sm" onclick="openModal('create')">＋ Create New Definition</button>
+          <button class="btn btn-warning btn-sm" onclick="openModal('update')">✎ Update Existing</button>
+          <span class="action-bar-desc">Changes will generate a notification email to the governance team.</span>
+        </div>
+        <div class="upload-bar">
+          <span class="lbl">📂 Import from Excel:</span>
+          <div class="drop-mini" onclick="document.getElementById('fileInput').click()">Click to upload .xlsx</div>
+          <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleFile(event)">
+          <span class="file-chip" id="fileChip" style="display:none"></span>
+          <select id="sheetSelect" style="display:none;border:1px solid #ddd;border-radius:6px;padding:5px 10px;font-size:13px;outline:none" onchange="loadSheet()"></select>
+          <button class="btn btn-secondary btn-sm" id="importBtn" style="display:none" onclick="importExcelRows()">Add to Table</button>
+          <div class="divider"></div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px">Download Template</div>
+            <button class="btn btn-secondary btn-sm" onclick="downloadTemplate()" style="display:flex;align-items:center;gap:6px;white-space:nowrap">
+              <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:#555"><path d="M19 9h-4V3H9v6H5l7 7 7-7zm-8 2V5h2v6h1.17L12 13.17 9.83 11H11zm-6 7h14v2H5z"/></svg>Export Template (.xlsx)
+            </button>
+          </div>
+        </div>
+        <div class="dup-alert" id="dupAlert">
+          <div class="dup-alert-icon">⚠️</div>
+          <div class="dup-alert-body"><strong>Duplicate data elements detected</strong><ul id="dupList"></ul></div>
+        </div>
+        <div class="card">
+          <div class="tcard-hdr">
+            <h3>📊 Data Preview &amp; Editor</h3>
+            <div class="tmeta"><span class="dirty-badge" id="dirtyBadge"></span><span class="row-count" id="rowCount">0 rows</span></div>
+          </div>
+          <div class="twrap"><table><thead><tr id="tableHead"></tr></thead><tbody id="tableBody"></tbody></table></div>
+          <div class="prog-wrap" id="progWrap"><div class="prog-bg"><div class="prog-fill" id="progFill"></div></div><div class="prog-lbl" id="progLbl"></div></div>
+        </div>
+        <div class="footer-actions">
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-secondary" onclick="addNewRow()">+ Add Row</button>
+            <button class="btn btn-secondary" onclick="revertAll()">↩ Revert All</button>
+          </div>
+          <button class="btn btn-success" id="saveBtn" onclick="saveChanges()" disabled>💾 Save to SharePoint</button>
+        </div>
+      </div>
+
+      <!-- REPORT TAB -->
+      <div class="tab-content" id="tab-report">
+        <div class="rep-hdr">
+          <div><div class="rep-title" id="reportTitle"></div><div class="rep-sub">Explore data definitions and standardized data elements across the organization</div></div>
+          <button class="btn btn-primary" onclick="window.print()">🖨 Print Report</button>
+        </div>
+        <div class="filter-bar">
+          <div class="fg"><label>Report Name</label><select class="fsel" id="fReport" onchange="renderReport()"><option value="">All</option></select></div>
+          <div class="fg"><label>Page / Location</label><select class="fsel" id="fPage" onchange="renderReport()"><option value="">All</option></select></div>
+          <div class="fg"><label>Source</label><select class="fsel" id="fSource" onchange="renderReport()"><option value="">All</option></select></div>
+          <div class="fg"><label>Same as Carmel?</label><select class="fsel" id="fSame" onchange="renderReport()"><option value="">All</option><option value="yes">✅ Yes</option><option value="no">No</option></select></div>
+          <div class="fg" style="flex:1"><label>Search</label><input class="search-box" style="width:100%" type="text" id="rSearch" placeholder="Search…" oninput="renderReport()"></div>
+        </div>
+        <div class="rep-welcome"><h2 id="repWelcomeTitle"></h2><p>Here you can explore data definitions and access standardized data elements across the organization</p></div>
+        <div class="rep-twrap">
+          <table class="rtable">
+            <thead><tr>
+              <th style="width:40px">Link</th><th>Measure / Data Element</th><th>Report Name</th>
+              <th>Page / Location</th><th>Industry Definition</th><th>Definition</th>
+              <th>Calculation</th><th>Source</th><th style="text-align:center">Carmel Same?</th><th style="text-align:center">Type</th>
+            </tr></thead>
+            <tbody id="reportBody"></tbody>
+          </table>
+          <div class="rep-footer">** Data definitions maintained by the Data Governance team. For questions, contact Data Governance support.</div>
+        </div>
+      </div>
+
+      <!-- SEARCH TAB (read-only end users) -->
+      <div class="tab-content" id="tab-search">
+        <div style="margin-bottom:20px">
+          <div style="font-size:20px;font-weight:700;color:#1a3a5c;display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <svg viewBox="0 0 24 24" style="width:22px;height:22px"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#7c3aed" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>
+            Carmel Data Element Search
+          </div>
+          <div style="font-size:13px;color:#888">Search and explore data definitions across the organization. Read-only view.</div>
+        </div>
+        <div class="eu-search-bar">
+          <div class="eu-input-wrap">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>
+            <input class="eu-input" type="text" id="euSearch" placeholder="Type a measure name, keyword, or definition…" oninput="renderSearchView()">
+          </div>
+          <div class="eu-filter-row">
+            <div class="eu-filter">
+              <label>Report</label>
+              <select class="eu-fsel" id="euFReport" onchange="renderSearchView()"><option value="">All Reports</option></select>
+            </div>
+            <div class="eu-filter">
+              <label>Source</label>
+              <select class="eu-fsel" id="euFSource" onchange="renderSearchView()"><option value="">All Sources</option></select>
+            </div>
+            <div class="eu-filter">
+              <label>Carmel Same?</label>
+              <select class="eu-fsel" id="euFSame" onchange="renderSearchView()">
+                <option value="">All</option><option value="yes">✅ Yes</option><option value="no">No</option>
+              </select>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:10px;padding-bottom:1px">
+              <span id="euResultCount" style="font-size:12px;color:#888;background:#f5f0ff;padding:4px 14px;border-radius:12px;white-space:nowrap">0 results</span>
+              <button onclick="clearEuSearch()" style="font-size:12px;color:#7c3aed;background:none;border:none;cursor:pointer;text-decoration:underline;white-space:nowrap">Clear filters</button>
+            </div>
+          </div>
+        </div>
+        <div id="euResults" style="display:flex;flex-direction:column;gap:12px"></div>
+        <div id="euEmpty" style="display:none;background:#fff;border-radius:12px;padding:48px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.08)">
+          <div style="font-size:40px;margin-bottom:12px">🔍</div>
+          <div style="font-size:15px;font-weight:600;color:#1a3a5c;margin-bottom:6px">No results found</div>
+          <div style="font-size:13px;color:#888">Try a different search term or clear your filters.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- CREATE/UPDATE MODAL -->
+<div class="modal-overlay" id="defModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">📝 Create New Definition</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mode-toggle">
+        <button class="mode-btn active" id="modeCreate" onclick="setModalMode('create')">＋ Create New</button>
+        <button class="mode-btn" id="modeUpdate" onclick="setModalMode('update')">✎ Update Existing</button>
+      </div>
+      <div id="updateSearch" style="display:none;margin-bottom:16px">
+        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px">Search for existing definition to update:</label>
+        <input type="text" id="existingSearch" placeholder="Type measure name…" style="width:100%;border:1px solid #ddd;border-radius:6px;padding:8px 12px;font-size:13px;outline:none" oninput="filterExisting()">
+        <div id="existingList" style="margin-top:8px;max-height:160px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:6px;display:none"></div>
+      </div>
+      <div class="modal-section">
+        <h4>Definition Details</h4>
+        <div class="form-row">
+          <div class="form-field"><label>Sort #</label><input type="number" id="fSort" placeholder="e.g. 1"></div>
+          <div class="form-field"><label>Report Name *</label><input type="text" id="fReportName" placeholder="e.g. Carmel Performance Metrics"></div>
+          <div class="form-field"><label>Page Name</label><input type="text" id="fPageLoc" placeholder="e.g. Operational Summary"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>Link (URL)</label><input type="url" id="fLink" placeholder="https://..."></div>
+          <div class="form-field"><label>Measure Name *</label><input type="text" id="fMeasure" placeholder="e.g. Total Units" oninput="checkModalDup()"></div>
+        </div>
+        <div id="modalDupWarn" style="display:none;background:#fff5f5;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;color:#991b1b;margin-bottom:10px">⚠️ A definition with this measure name already exists.</div>
+        <div class="form-row"><div class="form-field full"><label>Industry Definition</label><textarea id="fIndustryDef" placeholder="Standard industry definition…"></textarea></div></div>
+        <div class="form-row"><div class="form-field full"><label>Carmel Definition *</label><textarea id="fDefinition" placeholder="Carmel's definition…"></textarea></div></div>
+        <div class="form-row"><div class="form-field full"><label>Calculation / Source Formula</label><textarea id="fCalculation" placeholder="e.g. Table = Daily Unit Status"></textarea></div></div>
+        <div class="form-row">
+          <div class="form-field"><label>Source</label><input type="text" id="fSource" placeholder="e.g. Carmel Data Dictionary"></div>
+          <div class="form-field" style="display:flex;align-items:center">
+            <div class="checkbox-field" style="margin-top:18px">
+              <input type="checkbox" id="fCarmelSame">
+              <label for="fCarmelSame">Carmel uses same definition as industry</label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h4>📧 Notification Email</h4>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:12px;color:#555">AI-generated notification sent to governance team via Outlook.</span>
+          <button class="btn btn-secondary btn-sm" id="genEmailBtn" onclick="generateEmail()">✨ Generate Email</button>
+        </div>
+        <div style="margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:6px">Recipients:</div>
+          <div class="email-recipients" id="recipientList"></div>
+          <div class="add-recipient">
+            <input type="email" id="newRecipient" placeholder="Add email address…" onkeydown="if(event.key==='Enter')addRecipient()">
+            <button class="btn btn-secondary btn-sm" onclick="addRecipient()">+ Add</button>
+          </div>
+        </div>
+        <div id="emailPreviewArea" style="display:none">
+          <div class="email-preview">
+            <div class="email-preview-hdr">Email Preview</div>
+            <div class="email-meta"><strong>Subject:</strong> <span id="previewSubject"></span></div>
+            <div class="email-body-preview" id="previewBody"></div>
+          </div>
+        </div>
+        <div id="generatingBadge" style="display:none">
+          <span class="generating-badge"><span class="mini-spinner"></span>Generating email with AI…</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveFromModal()">💾 Save &amp; Send Notification</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay"><div class="loading-box"><div class="spinner"></div><p id="loadingMsg">Loading…</p></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATIC DATA ──────────────────────────────────────────────────────────
+const STATIC_GOV_DATA = [
+  {Sort:1,  Measure:'# of Affordbale/BMR Units (AFF)', Definition:'The number of residential units within a multifamily property that are governed by an affordability program—typically tied to Area Median Income (AMI) thresholds (e.g., 60% AMI, 80% AMI)— and subject to income qualification and compliance requirements.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:2,  Measure:'# of Buildings', Definition:'The count of distinct physical structures within a multifamily property or community, regardless of how many units each structure contains.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:3,  Measure:'# of Market Rate Units (MRU)', Definition:'The number of residential units within a multifamily property that are rented at full market rents, without any income restrictions or regulatory affordability requirements.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:4,  Measure:'# of Parking Spaces', Definition:'The total count of individual vehicle parking stalls designated for use at a multifamily property as defined by zoning, including any combination of surface parking, structured/garage parking, podium parking, tuck-under stalls, handicap/ADA, or dedicated retail/residential spaces. Each marked parking stall counts as one space, regardless of whether the space is assigned, reserved, shared, covered, uncovered, or paid.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:5,  Measure:'# of Retail Units', Definition:'The count of distinct retail spaces or tenant suites within a multifamily property that are designated for commercial use rather than residential occupancy. Internally, retail unit counts are not added to the "Property - total unit count", and are treated separately.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:6,  Measure:'# of Stories', Definition:'Measures the height of a property in stories, starting and inclusive of the ground floor.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:7,  Measure:'5-Year Rent Growth CAGR', Definition:'Compound annual growth rate for 5 years of the effective rent growth forecast.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:true, Link:'', ReportName:'Carmel Performance Metrics', PageLoc:''},
+  {Sort:8,  Measure:'Acquisition', Definition:'An asset purchased by the company after being operated by a third party.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:9,  Measure:'Alternate Name', Definition:'Any secondary or historical name used to identify a multifamily property outside of its official Asset Name, Legal Name, Initial Development Name, or current Marketing Name.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:10, Measure:'Asset Acquisition Date', Definition:'The date when Carmel closes on the property as evidenced by a document such as a deed, ground lease, or similar evidence of control.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:11, Measure:'Asset Name', Definition:'The primary organizational name used to identify a real estate asset across all business functions and internal systems. The Asset Name represents the highest-level asset entity and may refer to a single property or a multi-property campus.\n\nFor single-property assets, the Asset Name / Parent Name generally aligns with the property\'s Marketing Name once established.\n\nFor campus or multi-property assets, the Asset Name represents the overall campus, while individual buildings or sub-properties may have distinct Marketing Names.\n\nIf a Marketing Name has not yet been established, the Initial Development Name or Legal Name is used as the Asset Name until a Marketing Name is available.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:12, Measure:'Blended Weeks Concessions - Carmel Portfolio', Definition:'A rent concession is a temporary incentive, or discount, offered by a landlord to attract or retain tenants, such as reduced rent, free months, or waived fees. The concession amounts are a blend of all of the new leases & renewal leases combined.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:true, Link:'', ReportName:'Carmel Performance Metrics', PageLoc:''},
+  {Sort:13, Measure:'Building Type Classification (formerly construction type)', Definition:'A standardized grouping used internally that identifies the structural form and vertical density of a multifamily property, based on the number of stories, construction style, and overall physical configuration.\n\nGarden: Low-rise residential buildings, typically 1–3 stories.\nMid-Rise: Medium-density residential buildings, typically 4–7 stories.\nHigh-Rise: Vertical residential buildings, generally 8+ stories.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:false, Link:'', ReportName:'Carmel Asset Database', PageLoc:''},
+  {Sort:14, Measure:'Capitalization', Definition:'Represents the total capital (Debt and Equity) used to invest in a collection of investments or the Carmel Partners Fund.', IndustryDef:'', Calculation:'', Source:'Carmel Data Dictionary', CarmelSame:true, Link:'', ReportName:'Fund Management', PageLoc:''},
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────
+let currentType = null, rows = [], requestDigest = '', workbook = null, excelRows = [], _uid = 1;
+let modalMode = 'create', editingRowId = null, emailSubject = '', emailBody = '';
+const DEFAULT_RECIPIENTS = ['datagovernance@carmelpartners.com'];
+let recipients = [...DEFAULT_RECIPIENTS];
+
+const SCHEMA = {
+  gov:{title:'Data Governance Definitions',reportTitle:'Carmel Data Dictionary — Governance',welcomeTitle:"Welcome to Carmel's Data Governance Dictionary",badge:'🏛️ Data Governance',badgeClass:'ctx-gov',typeLabel:'Governance',
+    cols:[
+      {key:'Link',       label:'Link',          w:'50px', sp:'Link',                       input:'link'},
+      {key:'Sort',       label:'Sort',          w:'46px', sp:'Sort',                       input:'text'},
+      {key:'ReportName', label:'Report Name',   w:'',     sp:'Report_x0020_Name',          input:'text'},
+      {key:'PageLoc',    label:'Page Name',     w:'',     sp:'Page_x0020_Name',            input:'text'},
+      {key:'Measure',    label:'Measure Name',  w:'',     sp:'Measure_x0020_Name',         input:'text',bold:true},
+      {key:'IndustryDef',label:'Industry Def.', w:'160px',sp:'Industry_x0020_Definition',  input:'textarea'},
+      {key:'Definition', label:'Definition',    w:'160px',sp:'Definition',                 input:'textarea'},
+      {key:'Calculation',label:'Calculation',   w:'140px',sp:'Calculation',                input:'textarea'},
+      {key:'Source',     label:'Source',        w:'',     sp:'Source',                     input:'text'},
+      {key:'CarmelSame', label:'Carmel Same?',  w:'76px', sp:'CarmelSame',                 input:'checkbox'},
+    ]},
+  dept:{title:'Department Report Definitions',reportTitle:'Carmel Data Dictionary — Department Reports',welcomeTitle:"Welcome to Carmel's Department Report Dictionary",badge:'📊 Dept. Report Definitions',badgeClass:'ctx-dept',typeLabel:'Department',
+    cols:[
+      {key:'Link',       label:'Link',          w:'50px', sp:'Link',                       input:'link'},
+      {key:'Sort',       label:'Sort',          w:'46px', sp:'Sort',                       input:'text'},
+      {key:'ReportName', label:'Report Name',   w:'',     sp:'Report_x0020_Name',          input:'text'},
+      {key:'PageLoc',    label:'Page/Location', w:'',     sp:'Page_x0020_Name',            input:'text'},
+      {key:'Measure',    label:'Data Element',  w:'',     sp:'Measure_x0020_Name',         input:'text',bold:true},
+      {key:'IndustryDef',label:'Industry Def.', w:'160px',sp:'Industry_x0020_Definition',  input:'textarea'},
+      {key:'Definition', label:'Data Definition',w:'160px',sp:'Definition',                input:'textarea'},
+      {key:'Calculation',label:'Measure/Calc',  w:'140px',sp:'Calculation',                input:'textarea'},
+      {key:'Source',     label:'Source/Link',   w:'',     sp:'Source',                     input:'text'},
+      {key:'CarmelSame', label:'Carmel Same?',  w:'76px', sp:'CarmelSame',                 input:'checkbox'},
+    ]}
+};
+
+// ── LANDING / TYPE ───────────────────────────────────────────────────────
+function selectType(type) {
+  currentType = type;
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('appShell').classList.add('visible');
+
+  if (type === 'search') {
+    document.getElementById('typeStripe').className = 'type-stripe stripe-search';
+    document.getElementById('ctxBadge').textContent = '🔍 Read-Only Search';
+    document.getElementById('ctxBadge').className = 'ctx-badge ctx-search';
+    // Show only search tab
+    document.getElementById('tabEditor').style.display = 'none';
+    document.getElementById('tabReport').style.display = 'none';
+    document.getElementById('tabSearch').style.display = 'flex';
+    // Load all gov data as search pool
+    rows = STATIC_GOV_DATA.map(d => makeRow({...d, _status:'live'}));
+    populateEuFilters();
+    switchTab('search');
+    return;
+  }
+
+  // Gov or Dept — show editor & report tabs, hide search tab
+  document.getElementById('tabEditor').style.display = 'flex';
+  document.getElementById('tabReport').style.display = 'flex';
+  document.getElementById('tabSearch').style.display = 'none';
+
+  const s = SCHEMA[type];
+  document.getElementById('typeStripe').className = 'type-stripe stripe-' + type;
+  document.getElementById('ctxBadge').textContent = s.badge;
+  document.getElementById('ctxBadge').className = 'ctx-badge ' + s.badgeClass;
+  document.getElementById('editorTitle').textContent = s.title;
+  document.getElementById('reportTitle').textContent = s.reportTitle;
+  document.getElementById('repWelcomeTitle').textContent = s.welcomeTitle;
+  document.getElementById('govActionBar').style.display = type === 'gov' ? 'flex' : 'none';
+  rows = type === 'gov' ? STATIC_GOV_DATA.map(d => makeRow({...d, _status:'live'})) : [];
+  buildTableHead(); renderTable();
+  switchTab('editor');
+}
+
+function goHome() {
+  document.getElementById('landing').style.display = 'flex';
+  document.getElementById('appShell').classList.remove('visible');
+  currentType = null; rows = [];
+}
+
+// ── TABS ─────────────────────────────────────────────────────────────────
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  const tabMap = {editor:'tabEditor', report:'tabReport', search:'tabSearch'};
+  const el = document.getElementById(tabMap[t]);
+  if (el) el.classList.add('active');
+  document.getElementById('tab-' + t).classList.add('active');
+  if (t === 'report') { populateFilters(); renderReport(); }
+  if (t === 'search') renderSearchView();
+}
+
+// ── TABLE HEAD ─────────────────────────────────────────────────────────────
+function buildTableHead() {
+  if (!currentType || currentType === 'search') return;
+  const cols = SCHEMA[currentType].cols;
+  document.getElementById('tableHead').innerHTML =
+    cols.map(c => `<th style="${c.w ? 'width:'+c.w+';' : ''}">${c.label}</th>`).join('') +
+    '<th style="width:80px;text-align:center">Status</th><th style="width:66px;text-align:center">Actions</th>';
+}
+
+// ── SHAREPOINT ────────────────────────────────────────────────────────────
+function spCfg(){return{site:document.getElementById('spSiteUrl').value.trim().replace(/\/$/,''),list:document.getElementById('spListName').value.trim(),token:document.getElementById('spToken').value.trim()};}
+function spHdrs(digest){const{token}=spCfg();const h={'Accept':'application/json;odata=verbose','Content-Type':'application/json;odata=verbose'};if(token)h['Authorization']=`Bearer ${token}`;if(digest){h['X-RequestDigest']=digest;h['IF-MATCH']='*';}return h;}
+async function fetchDigest(){const{site,token}=spCfg();if(!site||!token){showToast('Enter site URL and token first.','error');return;}showLoading('Fetching digest…');try{const res=await fetch(`${site}/_api/contextinfo`,{method:'POST',headers:{'Accept':'application/json;odata=verbose','Content-Type':'application/json;odata=verbose','Authorization':`Bearer ${token}`}});const d=await res.json();requestDigest=d?.d?.GetContextWebInformation?.FormDigestValue||'';hideLoading();showToast(requestDigest?'✓ Digest retrieved.':'Could not retrieve digest.',requestDigest?'success':'error');}catch(e){hideLoading();showToast('Digest fetch failed: '+e.message,'error');}}
+async function fetchFromSharePoint(){const{site,list,token}=spCfg();if(!site||!list||!token){showToast('Fill in all SharePoint config fields.','error');return;}showLoading('Loading from SharePoint…');const tl=SCHEMA[currentType].typeLabel;try{const url=`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items?$select=Id,Link,Sort,Report_x0020_Name,Page_x0020_Name,Measure_x0020_Name,Industry_x0020_Definition,Definition,Calculation,Source,CarmelSame,DefinitionType&$filter=DefinitionType eq '${tl}'&$top=5000`;const res=await fetch(url,{headers:spHdrs()});if(!res.ok)throw new Error(`HTTP ${res.status}`);const d=await res.json();rows=(d?.d?.results||[]).map(item=>makeRow({spId:item.Id,Link:item.Link??'',Sort:item.Sort??'',ReportName:item.Report_x0020_Name??'',PageLoc:item.Page_x0020_Name??'',Measure:item.Measure_x0020_Name??item.Title??'',IndustryDef:item.Industry_x0020_Definition??'',Definition:item.Definition??'',Calculation:item.Calculation??'',Source:item.Source??'',CarmelSame:item.CarmelSame===true,_status:'live'}));hideLoading();renderTable();checkDuplicates();showToast(`✓ Loaded ${rows.length} rows.`,'success');}catch(e){hideLoading();showToast('Failed: '+e.message,'error');}}
+async function saveChanges(){const{site,list}=spCfg();if(!site||!list){showToast('Config incomplete.','error');return;}const toSave=rows.filter(r=>['dirty','new','deleted'].includes(r._status));if(!toSave.length){showToast('No changes.','info');return;}if(!requestDigest){showToast('Click "Get Digest" first.','error');return;}const tl=SCHEMA[currentType].typeLabel;const prog=document.getElementById('progWrap'),fill=document.getElementById('progFill'),lbl=document.getElementById('progLbl');prog.style.display='block';fill.style.width='0%';document.getElementById('saveBtn').disabled=true;let done=0,errors=0;for(const r of toSave){const prev=r._status;r._status='saving';renderTable();const body={'__metadata':{'type':`SP.Data.${list.replace(/\s/g,'_x0020_')}ListItem`},'Title':String(r.Measure),'Link':String(r.Link),'Sort':r.Sort!==''?Number(r.Sort):null,'Report_x0020_Name':String(r.ReportName),'Page_x0020_Name':String(r.PageLoc),'Measure_x0020_Name':String(r.Measure),'Industry_x0020_Definition':String(r.IndustryDef),'Definition':String(r.Definition),'Calculation':String(r.Calculation),'Source':String(r.Source),'CarmelSame':r.CarmelSame===true,'DefinitionType':tl};try{let res;if(prev==='deleted'&&r.spId)res=await fetch(`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items(${r.spId})`,{method:'POST',headers:{...spHdrs(requestDigest),'X-HTTP-Method':'DELETE'}});else if(r.spId)res=await fetch(`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items(${r.spId})`,{method:'POST',headers:{...spHdrs(requestDigest),'X-HTTP-Method':'MERGE'},body:JSON.stringify(body)});else{res=await fetch(`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items`,{method:'POST',headers:spHdrs(requestDigest),body:JSON.stringify(body)});if(res?.ok){const dd=await res.json();r.spId=dd?.d?.Id;}}if(!res||res.ok||res.status===204||res.status===201){if(prev==='deleted')rows=rows.filter(x=>x.id!==r.id);else{r._status='live';r._orig=snap(r);}}else{r._status='error';errors++;}}catch(e){r._status='error';errors++;}done++;fill.style.width=Math.round((done/toSave.length)*100)+'%';lbl.textContent=`${done} of ${toSave.length}`;renderTable();await sleep(60);}document.getElementById('saveBtn').disabled=false;updateDirtyCount();showToast(!errors?'✓ All saved!':(`${done-errors} saved, ${errors} failed.`),!errors?'success':'error');}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────
+function openModal(mode){modalMode=mode;editingRowId=null;setModalMode(mode);resetModalForm();recipients=[...DEFAULT_RECIPIENTS];renderRecipients();document.getElementById('emailPreviewArea').style.display='none';document.getElementById('defModal').classList.add('show');}
+function closeModal(){document.getElementById('defModal').classList.remove('show');}
+function setModalMode(mode){modalMode=mode;document.getElementById('modeCreate').classList.toggle('active',mode==='create');document.getElementById('modeUpdate').classList.toggle('active',mode==='update');document.getElementById('updateSearch').style.display=mode==='update'?'block':'none';document.getElementById('modalTitle').textContent=mode==='create'?'📝 Create New Definition':'✎ Update Existing Definition';document.getElementById('modalSaveBtn').textContent=mode==='create'?'💾 Save & Send Notification':'💾 Update & Send Notification';if(mode==='update')populateExistingList();}
+function resetModalForm(){['fSort','fReportName','fPageLoc','fLink','fMeasure','fIndustryDef','fDefinition','fCalculation','fSource'].forEach(id=>document.getElementById(id).value='');document.getElementById('fCarmelSame').checked=false;document.getElementById('modalDupWarn').style.display='none';document.getElementById('existingSearch').value='';document.getElementById('existingList').style.display='none';emailSubject='';emailBody='';}
+function populateExistingList(filter=''){const list=document.getElementById('existingList');const active=rows.filter(r=>r._status!=='deleted'&&(!filter||r.Measure.toLowerCase().includes(filter.toLowerCase())));if(!active.length){list.style.display='none';return;}list.style.display='block';list.innerHTML=active.map(r=>`<div onclick="selectExisting(${r.id})" style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid #f0f2f5" onmouseover="this.style.background='#f5f9ff'" onmouseout="this.style.background=''">${r.Measure} <span style="color:#888;font-size:11px">— ${r.ReportName||'No report'}</span></div>`).join('');}
+function filterExisting(){populateExistingList(document.getElementById('existingSearch').value);}
+function selectExisting(id){const r=rows.find(r=>r.id===id);if(!r)return;editingRowId=id;document.getElementById('fSort').value=r.Sort||'';document.getElementById('fReportName').value=r.ReportName||'';document.getElementById('fPageLoc').value=r.PageLoc||'';document.getElementById('fLink').value=r.Link||'';document.getElementById('fMeasure').value=r.Measure||'';document.getElementById('fIndustryDef').value=r.IndustryDef||'';document.getElementById('fDefinition').value=r.Definition||'';document.getElementById('fCalculation').value=r.Calculation||'';document.getElementById('fSource').value=r.Source||'';document.getElementById('fCarmelSame').checked=r.CarmelSame===true;document.getElementById('existingList').style.display='none';document.getElementById('existingSearch').value=r.Measure;emailSubject='';emailBody='';document.getElementById('emailPreviewArea').style.display='none';}
+function checkModalDup(){const name=document.getElementById('fMeasure').value.trim().toLowerCase();const exists=rows.some(r=>r.Measure.trim().toLowerCase()===name&&(modalMode==='create'||r.id!==editingRowId)&&r._status!=='deleted');document.getElementById('modalDupWarn').style.display=exists?'block':'none';}
+function renderRecipients(){document.getElementById('recipientList').innerHTML=recipients.map((r,i)=>`<span class="recipient-tag">${r}<button onclick="removeRecipient(${i})">✕</button></span>`).join('');}
+function addRecipient(){const inp=document.getElementById('newRecipient');const v=inp.value.trim();if(!v||!v.includes('@')){showToast('Enter a valid email.','error');return;}if(!recipients.includes(v))recipients.push(v);inp.value='';renderRecipients();}
+function removeRecipient(i){recipients.splice(i,1);renderRecipients();}
+async function generateEmail(){const measure=document.getElementById('fMeasure').value.trim();const definition=document.getElementById('fDefinition').value.trim();if(!measure||!definition){showToast('Enter Measure Name and Definition first.','error');return;}document.getElementById('genEmailBtn').disabled=true;document.getElementById('generatingBadge').style.display='block';document.getElementById('emailPreviewArea').style.display='none';const isCreate=modalMode==='create';const prompt=`You are a data governance communications specialist at Carmel Partners. Write a professional notification email about a data definition being ${isCreate?'created':'updated'}.\n\nAction: ${isCreate?'New definition created':'Existing definition updated'}\nMeasure: ${measure}\nReport: ${document.getElementById('fReportName').value||'N/A'}\nDefinition: ${definition}\nIndustry Def: ${document.getElementById('fIndustryDef').value||'N/A'}\nCalculation: ${document.getElementById('fCalculation').value||'N/A'}\nCarmel Same as Industry: ${document.getElementById('fCarmelSame').checked?'Yes':'No'}\n\nWrite a concise professional email (3-4 short paragraphs). Return JSON only: {"subject": "...", "body": "..."}`;try{const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});const data=await res.json();const text=data.content?.find(b=>b.type==='text')?.text||'';const clean=text.replace(/```json|```/g,'').trim();const parsed=JSON.parse(clean);emailSubject=parsed.subject||'Data Governance Update';emailBody=parsed.body||text;document.getElementById('previewSubject').textContent=emailSubject;document.getElementById('previewBody').textContent=emailBody;document.getElementById('emailPreviewArea').style.display='block';}catch(e){showToast('Email generation failed.','error');}document.getElementById('genEmailBtn').disabled=false;document.getElementById('generatingBadge').style.display='none';}
+async function sendOutlookEmail(){if(!emailSubject||!emailBody)return true;try{const res=await fetch('https://graph.microsoft.com/v1.0/me/sendMail',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:{subject:emailSubject,body:{contentType:'Text',content:emailBody},toRecipients:recipients.map(r=>({emailAddress:{address:r}}))},saveToSentItems:true})});return res.ok||res.status===202;}catch(e){return false;}}
+async function saveFromModal(){const measure=document.getElementById('fMeasure').value.trim();const definition=document.getElementById('fDefinition').value.trim();if(!measure||!definition){showToast('Measure Name and Definition are required.','error');return;}const newData={Link:document.getElementById('fLink').value.trim(),Sort:document.getElementById('fSort').value.trim(),ReportName:document.getElementById('fReportName').value.trim(),PageLoc:document.getElementById('fPageLoc').value.trim(),Measure:measure,IndustryDef:document.getElementById('fIndustryDef').value.trim(),Definition:definition,Calculation:document.getElementById('fCalculation').value.trim(),Source:document.getElementById('fSource').value.trim(),CarmelSame:document.getElementById('fCarmelSame').checked};document.getElementById('modalSaveBtn').disabled=true;document.getElementById('modalSaveBtn').textContent='Saving…';const{site,list}=spCfg();const tl=SCHEMA[currentType].typeLabel;if(site&&list&&requestDigest){const body={'__metadata':{'type':`SP.Data.${list.replace(/\s/g,'_x0020_')}ListItem`},'Title':String(newData.Measure),'Link':String(newData.Link),'Sort':newData.Sort!==''?Number(newData.Sort):null,'Report_x0020_Name':String(newData.ReportName),'Page_x0020_Name':String(newData.PageLoc),'Measure_x0020_Name':String(newData.Measure),'Industry_x0020_Definition':String(newData.IndustryDef),'Definition':String(newData.Definition),'Calculation':String(newData.Calculation),'Source':String(newData.Source),'CarmelSame':newData.CarmelSame,'DefinitionType':tl};try{let res;if(modalMode==='update'&&editingRowId){const r=rows.find(r=>r.id===editingRowId);if(r?.spId)res=await fetch(`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items(${r.spId})`,{method:'POST',headers:{...spHdrs(requestDigest),'X-HTTP-Method':'MERGE'},body:JSON.stringify(body)});}else{res=await fetch(`${site}/_api/web/lists/getbytitle('${encodeURIComponent(list)}')/items`,{method:'POST',headers:spHdrs(requestDigest),body:JSON.stringify(body)});if(res?.ok){const dd=await res.json();newData.spId=dd?.d?.Id;}}}catch(e){}}if(modalMode==='update'&&editingRowId){const r=rows.find(r=>r.id===editingRowId);if(r){Object.assign(r,newData);r._status='live';r._orig=snap(r);}}else{rows.push(makeRow({...newData,_status:'live'}));}checkDuplicates();renderTable();document.getElementById('modalSaveBtn').textContent='Sending email…';const sent=await sendOutlookEmail();closeModal();document.getElementById('modalSaveBtn').disabled=false;document.getElementById('modalSaveBtn').textContent='💾 Save & Send Notification';if(emailSubject)showToast(sent?`✓ ${modalMode==='create'?'Created':'Updated'} & notification sent!`:`✓ Saved, email failed.`,sent?'success':'info');else showToast(`✓ Definition ${modalMode==='create'?'created':'updated'}.`,'success');}
+function openEditModal(id){editingRowId=id;openModal('update');setModalMode('update');selectExisting(id);}
+
+// ── EXCEL ─────────────────────────────────────────────────────────────────
+function handleFile(e){processFile(e.target.files[0]);}
+function processFile(file){if(!file)return;document.getElementById('fileChip').textContent='📄 '+file.name;document.getElementById('fileChip').style.display='inline-block';const reader=new FileReader();reader.onload=e=>{workbook=XLSX.read(e.target.result,{type:'array'});const sel=document.getElementById('sheetSelect');sel.innerHTML='';workbook.SheetNames.forEach(n=>{const o=document.createElement('option');o.value=o.textContent=n;sel.appendChild(o);});sel.style.display=workbook.SheetNames.length>1?'inline-block':'none';document.getElementById('importBtn').style.display='inline-block';loadSheet();};reader.readAsArrayBuffer(file);}
+function loadSheet(){const name=document.getElementById('sheetSelect').value||workbook.SheetNames[0];const json=XLSX.utils.sheet_to_json(workbook.Sheets[name],{defval:''});excelRows=json.map(r=>({Link:r['Link']??'',Sort:r['Sort']??'',ReportName:r['Report Name']??r['ReportName']??'',PageLoc:r['Page Name']??r['Page / Location']??'',Measure:r['Measure Name']??r['Data Element']??'',IndustryDef:r['Industry Definition']??r['Industry Def']??'',Definition:r['Definition']??r['Data Definition']??'',Calculation:r['Calculation']??r['Measure / Calc']??'',Source:r['Source']??r['Source / Link']??'',CarmelSame:false}));}
+function importExcelRows(){if(!excelRows.length){showToast('No data in sheet.','error');return;}const n=excelRows.map(r=>makeRow({...r,_status:'new'}));rows=[...rows,...n];checkDuplicates();renderTable();showToast(`✓ Imported ${n.length} rows.`,'success');}
+
+// ── ROW MGMT ──────────────────────────────────────────────────────────────
+function makeRow(d){const r={id:_uid++,spId:d.spId||null,Link:d.Link??'',Sort:d.Sort??'',ReportName:d.ReportName??'',PageLoc:d.PageLoc??'',Measure:d.Measure??'',IndustryDef:d.IndustryDef??'',Definition:d.Definition??'',Calculation:d.Calculation??'',Source:d.Source??'',CarmelSame:d.CarmelSame===true,_status:d._status||'new',_isDup:false};r._orig=snap(r);return r;}
+function snap(r){return{Link:r.Link,Sort:r.Sort,ReportName:r.ReportName,PageLoc:r.PageLoc,Measure:r.Measure,IndustryDef:r.IndustryDef,Definition:r.Definition,Calculation:r.Calculation,Source:r.Source,CarmelSame:r.CarmelSame};}
+function addNewRow(){rows.push(makeRow({_status:'new'}));checkDuplicates();renderTable();setTimeout(()=>{const trs=document.querySelectorAll('#tableBody tr');if(trs.length)trs[trs.length-1].querySelector('input,textarea')?.focus();},50);}
+function deleteRow(id){const r=rows.find(r=>r.id===id);if(!r)return;if(r.spId)r._status='deleted';else rows=rows.filter(r=>r.id!==id);checkDuplicates();renderTable();updateDirtyCount();}
+function revertRow(id){const r=rows.find(r=>r.id===id);if(!r||!r._orig)return;Object.assign(r,r._orig);r._status=r.spId?'live':'new';checkDuplicates();renderTable();updateDirtyCount();}
+function revertAll(){rows=rows.filter(r=>r.spId);rows.forEach(r=>{Object.assign(r,r._orig);r._status='live';});checkDuplicates();renderTable();updateDirtyCount();}
+function onCellChange(id,field,val){const r=rows.find(r=>r.id===id);if(!r)return;r[field]=val;if(field==='Measure')checkDuplicates();const changed=Object.keys(r._orig).some(k=>String(r[k])!==String(r._orig[k]));if(['live','error'].includes(r._status))r._status=changed?'dirty':'live';updateDirtyCount();updateRowStatus(id,r._status);}
+function onCheckChange(id,val){const r=rows.find(r=>r.id===id);if(!r)return;r.CarmelSame=val;const changed=Object.keys(r._orig).some(k=>String(r[k])!==String(r._orig[k]));if(['live','error'].includes(r._status))r._status=changed?'dirty':'live';updateDirtyCount();updateRowStatus(id,r._status);}
+function updateRowStatus(id,status){const tr=document.querySelector(`tr[data-id="${id}"]`);if(!tr)return;const r=rows.find(r=>r.id===id);tr.className=r._isDup?'dup-row':status==='dirty'?'dirty':status==='new'?'new-row':'';const b=tr.querySelector('.sbadge');if(b){b.className='sbadge '+(r._isDup?'s-dup':('s-'+status));b.textContent=r._isDup?'⚠ Duplicate':slabel(status);}document.getElementById('saveBtn').disabled=!rows.some(r=>['dirty','new','deleted'].includes(r._status));}
+function slabel(s){return{live:'Live',new:'New',dirty:'Modified',saving:'Saving…',error:'✗ Error',deleted:'Deleted'}[s]||s;}
+function updateDirtyCount(){const n=rows.filter(r=>['dirty','new'].includes(r._status)).length;const el=document.getElementById('dirtyBadge');el.style.display=n?'inline-block':'none';el.textContent=n+' unsaved change'+(n!==1?'s':'');document.getElementById('saveBtn').disabled=!rows.some(r=>['dirty','new','deleted'].includes(r._status));}
+function checkDuplicates(){const active=rows.filter(r=>r._status!=='deleted');const seen={},dups={};active.forEach(r=>{const k=r.Measure.trim().toLowerCase();if(!k)return;if(seen[k]){dups[k]=(dups[k]||[seen[k]]);dups[k].push(r.id);}else seen[k]=r.id;});rows.forEach(r=>{r._isDup=false;});Object.values(dups).forEach(ids=>ids.forEach(id=>{const r=rows.find(x=>x.id===id);if(r)r._isDup=true;}));const alert=document.getElementById('dupAlert'),list=document.getElementById('dupList'),dupNames=Object.keys(dups);if(dupNames.length){list.innerHTML=dupNames.map(k=>`<li><strong>${k}</strong> — appears ${dups[k].length} times</li>`).join('');alert.classList.add('show');}else alert.classList.remove('show');}
+
+// ── EDITOR RENDER ─────────────────────────────────────────────────────────
+function renderTable(){
+  if(!currentType||currentType==='search')return;
+  const cols=SCHEMA[currentType].cols;
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  let vis=rows.filter(r=>r._status!=='deleted');
+  if(q)vis=vis.filter(r=>cols.some(c=>String(r[c.key]).toLowerCase().includes(q)));
+  document.getElementById('rowCount').textContent=vis.length+' rows';
+  const tbody=document.getElementById('tableBody');
+  if(!vis.length){tbody.innerHTML=`<tr><td colspan="${cols.length+2}"><div style="text-align:center;padding:28px;color:#aaa;font-size:13px">No rows. Load from SharePoint or import Excel.</div></td></tr>`;return;}
+  tbody.innerHTML=vis.map(r=>{
+    const cls=r._isDup?'dup-row':r._status==='dirty'?'dirty':r._status==='new'?'new-row':'';
+    const sc=r._isDup?'s-dup':('s-'+r._status),sl=r._isDup?'⚠ Duplicate':slabel(r._status);
+    const cells=cols.map(c=>{
+      if(c.input==='checkbox')return`<td class="cb-cell"><div class="cb-wrap"><input type="checkbox" ${r[c.key]?'checked':''} onchange="onCheckChange(${r.id},this.checked)"><span class="cb-label">Same</span></div></td>`;
+      if(c.input==='link'){const v=esc(r[c.key]);const live=isUrl(r[c.key]);return`<td style="text-align:center">${live?`<a href="${v}" target="_blank" style="font-size:18px;text-decoration:none">🔗</a>`:`<input class="ci" style="font-size:11px;width:80px" placeholder="URL…" value="${v}" oninput="onCellChange(${r.id},'Link',this.value)">`}</td>`;}
+      const v=esc(r[c.key]);const dup=c.key==='Measure'&&r._isDup?`<span class="dup-icon" title="Duplicate">⚠️</span>`:'';
+      if(c.input==='textarea')return`<td><textarea class="ci" rows="2" oninput="onCellChange(${r.id},'${c.key}',this.value)">${v}</textarea></td>`;
+      return`<td><input class="ci" ${c.bold?'style="font-weight:600"':''} value="${v}" oninput="onCellChange(${r.id},'${c.key}',this.value)">${dup}</td>`;
+    }).join('');
+    const editBtn=currentType==='gov'?`<button class="ibt ibt-edit" onclick="openEditModal(${r.id})" title="Edit">✎</button> `:'';
+    return`<tr class="${cls}" data-id="${r.id}">${cells}<td style="text-align:center"><span class="sbadge ${sc}">${sl}</span></td><td style="text-align:center;white-space:nowrap">${editBtn}${r._status==='dirty'?`<button class="ibt ibt-undo" onclick="revertRow(${r.id})">↩</button> `:''}<button class="ibt ibt-del" onclick="deleteRow(${r.id})">🗑</button></td></tr>`;
+  }).join('');
+  updateDirtyCount();
+}
+
+// ── REPORT RENDER ─────────────────────────────────────────────────────────
+function populateFilters(){const live=rows.filter(r=>r._status!=='deleted');['fReport','fPage','fSource'].forEach(id=>{document.getElementById(id).innerHTML='<option value="">All</option>';});[...new Set(live.map(r=>r.ReportName).filter(Boolean))].sort().forEach(v=>addOpt('fReport',v));[...new Set(live.map(r=>r.PageLoc).filter(Boolean))].sort().forEach(v=>addOpt('fPage',v));[...new Set(live.map(r=>r.Source).filter(Boolean))].sort().forEach(v=>addOpt('fSource',v));}
+function addOpt(id,v){const o=document.createElement('option');o.value=o.textContent=v;document.getElementById(id).appendChild(o);}
+function renderReport(){const fR=document.getElementById('fReport').value,fP=document.getElementById('fPage').value,fS=document.getElementById('fSource').value,fSame=document.getElementById('fSame').value,fQ=document.getElementById('rSearch').value.toLowerCase();let vis=rows.filter(r=>r._status!=='deleted');if(fR)vis=vis.filter(r=>r.ReportName===fR);if(fP)vis=vis.filter(r=>r.PageLoc===fP);if(fS)vis=vis.filter(r=>r.Source===fS);if(fSame==='yes')vis=vis.filter(r=>r.CarmelSame);if(fSame==='no')vis=vis.filter(r=>!r.CarmelSame);if(fQ)vis=vis.filter(r=>r.Measure.toLowerCase().includes(fQ)||r.Definition.toLowerCase().includes(fQ)||r.IndustryDef.toLowerCase().includes(fQ));vis.sort((a,b)=>(Number(a.Sort)||0)-(Number(b.Sort)||0)||(a.Measure.localeCompare(b.Measure)));const tc=currentType==='gov'?'tag-gov':'tag-dept',tl=SCHEMA[currentType]?.typeLabel||'';const tbody=document.getElementById('reportBody');if(!vis.length){tbody.innerHTML='<tr><td colspan="10"><div style="text-align:center;padding:28px;color:#aaa;font-size:13px">No matching definitions.</div></td></tr>';return;}tbody.innerHTML=vis.map(r=>`<tr><td style="text-align:center">${isUrl(r.Link)?`<a href="${esc(r.Link)}" target="_blank" style="font-size:18px;text-decoration:none">🔗</a>`:'—'}</td><td style="font-weight:700;color:#1a3a5c">${esc(r.Measure)}</td><td><span class="tag tag-blue">${esc(r.ReportName||'—')}</span></td><td>${isUrl(r.PageLoc)?`<a href="${esc(r.PageLoc)}" target="_blank" style="color:#2d6da8;font-size:11px">🔗 ${esc(r.PageLoc)}</a>`:`<span class="tag tag-purple">${esc(r.PageLoc||'—')}</span>`}</td><td style="color:#555;max-width:200px">${esc(r.IndustryDef||'—')}</td><td style="max-width:220px">${esc(r.Definition)}</td><td style="font-family:monospace;font-size:11px;color:#555;max-width:160px">${esc(r.Calculation)}</td><td>${isUrl(r.Source)?`<a href="${esc(r.Source)}" target="_blank" style="color:#2d6da8;font-size:11px">🔗 Link</a>`:`<span class="tag tag-blue">${esc(r.Source||'—')}</span>`}</td><td style="text-align:center">${r.CarmelSame?'<span class="tag tag-same">✅ Yes</span>':'<span class="tag tag-diff">No</span>'}</td><td><span class="tag ${tc}">${tl}</span></td></tr>`).join('');}
+
+// ── END USER SEARCH ───────────────────────────────────────────────────────
+function populateEuFilters(){
+  const sel=document.getElementById('euFReport');sel.innerHTML='<option value="">All Reports</option>';
+  [...new Set(rows.map(r=>r.ReportName).filter(Boolean))].sort().forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel.appendChild(o);});
+  const sel2=document.getElementById('euFSource');sel2.innerHTML='<option value="">All Sources</option>';
+  [...new Set(rows.map(r=>r.Source).filter(Boolean))].sort().forEach(v=>{const o=document.createElement('option');o.value=o.textContent=v;sel2.appendChild(o);});
+}
+function clearEuSearch(){document.getElementById('euSearch').value='';document.getElementById('euFReport').value='';document.getElementById('euFSource').value='';document.getElementById('euFSame').value='';renderSearchView();}
+function renderSearchView(){
+  const q=document.getElementById('euSearch').value.toLowerCase().trim();
+  const fR=document.getElementById('euFReport').value;
+  const fS=document.getElementById('euFSource').value;
+  const fSame=document.getElementById('euFSame').value;
+  let vis=rows.filter(r=>r._status!=='deleted');
+  if(q)vis=vis.filter(r=>r.Measure.toLowerCase().includes(q)||r.Definition.toLowerCase().includes(q)||r.IndustryDef.toLowerCase().includes(q)||r.Calculation.toLowerCase().includes(q)||r.Source.toLowerCase().includes(q));
+  if(fR)vis=vis.filter(r=>r.ReportName===fR);
+  if(fS)vis=vis.filter(r=>r.Source===fS);
+  if(fSame==='yes')vis=vis.filter(r=>r.CarmelSame);
+  if(fSame==='no')vis=vis.filter(r=>!r.CarmelSame);
+  vis.sort((a,b)=>(Number(a.Sort)||0)-(Number(b.Sort)||0)||(a.Measure.localeCompare(b.Measure)));
+  document.getElementById('euResultCount').textContent=vis.length+' result'+(vis.length!==1?'s':'');
+  const container=document.getElementById('euResults');
+  const empty=document.getElementById('euEmpty');
+  if(!vis.length){container.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const hi=(text,q)=>{if(!q||!text)return esc(text);const re=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');return esc(text).replace(re,'<mark>$1</mark>');};
+  container.innerHTML=vis.map(r=>`
+    <div class="eu-result-card ${r.CarmelSame?'same-ind':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          ${isUrl(r.Link)?`<a href="${esc(r.Link)}" target="_blank" style="font-size:20px;text-decoration:none" title="Open source">🔗</a>`:''}
+          <span class="eu-measure">${hi(r.Measure,q)}</span>
+          ${r.CarmelSame?'<span style="background:#ede9fe;color:#5b21b6;font-size:11px;font-weight:700;padding:2px 10px;border-radius:10px">✅ Same as Industry</span>':''}
+        </div>
+        <div class="eu-tags">
+          ${r.ReportName?`<span class="tag tag-blue">${esc(r.ReportName)}</span>`:''}
+          ${r.Source?`<span class="tag tag-green">${esc(r.Source)}</span>`:''}
+          ${r.PageLoc?`<span class="tag tag-purple">${esc(r.PageLoc)}</span>`:''}
+        </div>
+      </div>
+      ${r.IndustryDef?`<div style="margin-bottom:10px"><div class="eu-section-label">Industry Definition</div><div class="eu-def-text" style="color:#555">${hi(r.IndustryDef,q)}</div></div>`:''}
+      <div style="margin-bottom:${r.Calculation?'10':'0'}px">
+        <div class="eu-section-label">${r.IndustryDef&&r.CarmelSame?'Definition (same as industry)':'Carmel Definition'}</div>
+        <div class="eu-def-text">${hi(r.Definition,q)}</div>
+      </div>
+      ${r.Calculation?`<div><div class="eu-section-label">Calculation</div><div class="eu-calc-box">${hi(r.Calculation,q)}</div></div>`:''}
+    </div>`).join('');
+}
+
+// ── TEMPLATE ──────────────────────────────────────────────────────────────
+function downloadTemplate(){const s=SCHEMA[currentType];if(!s)return;const headers=s.cols.map(c=>c.label);const sample=s.cols.map(c=>{if(c.key==='Link')return'https://...';if(c.key==='Sort')return'1';if(c.key==='ReportName')return'e.g. Carmel Performance Metrics';if(c.key==='PageLoc')return currentType==='gov'?'e.g. Operational Summary':'e.g. https://app.powerbi.com/...';if(c.key==='Measure')return currentType==='gov'?'e.g. Total Units':'e.g. Vacancy Rate';if(c.key==='IndustryDef')return'e.g. Standard industry definition...';if(c.key==='Definition')return'e.g. Carmel definition...';if(c.key==='Calculation')return'e.g. Vacant / Total';if(c.key==='Source')return'e.g. Carmel Data Dictionary';if(c.key==='CarmelSame')return'TRUE or FALSE';return'';});const ws=XLSX.utils.aoa_to_sheet([headers,sample]);ws['!cols']=headers.map(h=>({wch:Math.max(h.length+4,22)}));const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,s.typeLabel+' Definitions');const instrHeaders=['Column','Description','Required','Example'];const instrRows=s.cols.map(c=>{const req=['Measure','Definition'].includes(c.key)?'Yes':'No';let desc='',ex='';if(c.key==='Link'){desc='URL link to the data element source';ex='https://sharepoint.com/...';}else if(c.key==='Sort'){desc='Numeric sort order';ex='1, 2, 3';}else if(c.key==='ReportName'){desc='Report this measure belongs to';ex='Carmel Performance Metrics';}else if(c.key==='PageLoc'){desc=currentType==='gov'?'Page name in the report':'Power BI page or SharePoint URL';ex=currentType==='gov'?'Operational Summary':'https://...';}else if(c.key==='Measure'){desc=currentType==='gov'?'Official measure name':'Data element name';ex='Total Units';}else if(c.key==='IndustryDef'){desc='Standard industry definition';ex='The total number of...';}else if(c.key==='Definition'){desc='Carmel definition';ex='Total count of all residential units';}else if(c.key==='Calculation'){desc='How the measure is calculated';ex='Vacant / Total Units';}else if(c.key==='Source'){desc='Data source';ex='Carmel Data Dictionary';}else if(c.key==='CarmelSame'){desc='Does Carmel use same definition as industry?';ex='TRUE or FALSE';}return[c.label,desc,req,ex];});const wsI=XLSX.utils.aoa_to_sheet([instrHeaders,...instrRows]);wsI['!cols']=[{wch:22},{wch:52},{wch:10},{wch:40}];XLSX.utils.book_append_sheet(wb,wsI,'Column Guide');XLSX.writeFile(wb,`Carmel_${s.typeLabel}_Definitions_Template.xlsx`);showToast('✓ Template downloaded.','success');}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────
+function isUrl(v){return v&&(v.startsWith('http://')||v.startsWith('https://'));}
+function esc(v){return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function showLoading(msg){document.getElementById('loadingMsg').textContent=msg;document.getElementById('loadingOverlay').classList.add('show');}
+function hideLoading(){document.getElementById('loadingOverlay').classList.remove('show');}
+function showToast(msg,type){const t=document.getElementById('toast');t.textContent=msg;t.className=`toast toast-${type}`;t.style.display='block';setTimeout(()=>t.style.display='none',4500);}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+</script>
+</body>
+</html>
